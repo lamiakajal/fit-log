@@ -3,6 +3,7 @@ import { Oswald, Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InitialLoader from "@/components/InitialLoader";
+import ScrollToTop from "@/components/ScrollToTop";
 import { WorkoutProvider } from "@/context/WorkoutContext";
 import "./globals.css";
 
@@ -65,6 +66,9 @@ export default function RootLayout({
           <main className="flex-1 w-full">{children}</main>
           <Footer />
         </WorkoutProvider>
+
+        {/* Scroll navigation helper */}
+        <ScrollToTop />
       </body>
     </html>
   );

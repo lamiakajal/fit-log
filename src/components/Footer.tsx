@@ -9,7 +9,7 @@ export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Section entry scroll observer animation
+  // Trigger entrance transition on scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -37,7 +37,6 @@ export default function Footer() {
       ref={footerRef}
       className="relative w-full bg-[#0b0d11] border-t border-white/6 select-none mt-16 sm:mt-24 overflow-hidden"
     >
-      {/* ================= INLINE KEYFRAME ANIMATIONS (PULSE & GLOW LOOP) ================= */}
       <style>{`
         @keyframes footerAuraPulse {
           0%, 100% {
@@ -65,18 +64,16 @@ export default function Footer() {
         }
       `}</style>
 
-      {/* Ambient Radial Neon Glow Loop with Canonical Classes */}
+      {/* Ambient backdrop glow */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-85 sm:w-137.5 md:w-175 h-36 bg-[#ccff00]/6 rounded-full blur-[90px] sm:blur-[120px] pointer-events-none footer-glow-loop" />
 
-      {/* Main Footer Content Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-10 sm:py-14 md:py-16">
-        {/* Top Grid Section */}
         <div
           className={`grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10 pb-8 sm:pb-12 border-b border-white/6 items-start transition-all duration-700 ease-out ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          {/* Brand Info */}
+          {/* Brand */}
           <div className="md:col-span-6 space-y-4">
             <Link
               href="/"
@@ -98,7 +95,7 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Quick Navigation Links */}
+          {/* Quick links */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="font-heading text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
               Navigation
@@ -131,7 +128,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Social Links & Badges */}
+          {/* Socials */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="font-heading text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
               Connect
@@ -171,7 +168,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright & Back to Top */}
+        {/* Bottom bar */}
         <div
           className={`pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-700 delay-150 ease-out ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"

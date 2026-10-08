@@ -41,6 +41,7 @@ export default function WorkoutDetailPage({
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
+  // Trigger entrance transition on mount
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -69,7 +70,7 @@ export default function WorkoutDetailPage({
       ref={sectionRef}
       className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-10 md:py-14 overflow-hidden select-none"
     >
-      {/* Top Back Navigation Breadcrumb */}
+      {/* Navigation */}
       <div
         className={`mb-6 transition-all duration-500 ease-out ${
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
@@ -85,9 +86,7 @@ export default function WorkoutDetailPage({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 lg:gap-14 items-start">
-        {/* ==================================================================== */}
-        {/* 1. LEFT COLUMN: WORKOUT VISUAL FRAME                                 */}
-        {/* ==================================================================== */}
+        {/* Workout visual */}
         <div
           className={`relative w-full flex flex-col items-center justify-center transition-all duration-700 ease-out ${
             isVisible
@@ -95,10 +94,8 @@ export default function WorkoutDetailPage({
               : "opacity-0 -translate-x-10 sm:-translate-x-16"
           }`}
         >
-          {/* Subtle Ambient Radial Pulse Glow */}
           <div className="absolute w-4/5 h-4/5 bg-[#ccff00]/10 rounded-full blur-[70px] sm:blur-[90px] pointer-events-none" />
 
-          {/* Main Visual Frame */}
           <div className="relative w-full aspect-4/3 sm:aspect-square bg-[#14161b] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/8 shadow-[0_16px_40px_rgba(0,0,0,0.8)] group">
             <Image
               src={workout.image}
@@ -108,16 +105,13 @@ export default function WorkoutDetailPage({
               unoptimized
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
-            {/* Difficulty Badge */}
             <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[11px] sm:text-xs font-heading font-bold uppercase tracking-wider text-[#ccff00]">
               {workout.difficulty}
             </div>
           </div>
         </div>
 
-        {/* ==================================================================== */}
-        {/* 2. RIGHT COLUMN: DETAILS, SPECS TABLE & ACTION BUTTONS               */}
-        {/* ==================================================================== */}
+        {/* Workout details and actions */}
         <div
           className={`flex flex-col space-y-6 transition-all duration-700 ease-out delay-100 ${
             isVisible
@@ -125,7 +119,6 @@ export default function WorkoutDetailPage({
               : "opacity-0 translate-x-10 sm:translate-x-16"
           }`}
         >
-          {/* Title & Short Description */}
           <div className="space-y-3">
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-white leading-tight">
               {workout.name}
@@ -135,7 +128,7 @@ export default function WorkoutDetailPage({
             </p>
           </div>
 
-          {/* Muscle Group Badges */}
+          {/* Muscle groups */}
           <div className="flex flex-wrap gap-2">
             {workout.muscleGroups.map((group) => (
               <span
@@ -147,7 +140,7 @@ export default function WorkoutDetailPage({
             ))}
           </div>
 
-          {/* Specs Table Container */}
+          {/* Key metrics */}
           <div className="bg-[#14161b] border border-white/8 rounded-xl p-4 sm:p-5 divide-y divide-white/6 text-xs sm:text-sm">
             <div className="flex justify-between items-center py-2.5">
               <span className="font-heading uppercase tracking-wider text-[#8b929e] font-semibold">
@@ -209,7 +202,7 @@ export default function WorkoutDetailPage({
             </div>
           </div>
 
-          {/* Step-by-Step Instructions */}
+          {/* Form instructions */}
           <div className="space-y-3 pt-2">
             <h2 className="font-heading text-lg font-bold uppercase tracking-wider text-white">
               INSTRUCTIONS
@@ -250,9 +243,8 @@ export default function WorkoutDetailPage({
             </ol>
           </div>
 
-          {/* Action CTAs */}
+          {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
-            {/* Primary Action Button: Add/Remove Plan */}
             <button
               type="button"
               onClick={() => togglePlan(workout.id, workout.name)}
@@ -275,7 +267,6 @@ export default function WorkoutDetailPage({
               )}
             </button>
 
-            {/* Bookmark Action Button: Save/Unsave */}
             <button
               type="button"
               onClick={() => toggleSaved(workout.id, workout.name)}
