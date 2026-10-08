@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { FaDumbbell } from "react-icons/fa6";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useWorkout } from "@/context/WorkoutContext";
+
+// Standard subscriber for client hydration check without effect cascades
+const emptySubscribe = () => () => {};
 
 function NavbarContent() {
   const pathname = usePathname();
@@ -16,7 +19,13 @@ function NavbarContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { planIds, savedIds } = useWorkout();
 
-  // Active state detection
+  // Pure client-side check to prevent hydration mismatch
+  const isHydrated = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
   const isPlanActive =
     pathname === "/my-plan" && (currentTab === "plan" || !currentTab);
   const isSavedActive = pathname === "/my-plan" && currentTab === "saved";
@@ -28,7 +37,7 @@ function NavbarContent() {
   return (
     <header className="w-full bg-[#0f1115] border-b border-white/6 sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 h-16 sm:h-20 flex items-center justify-between gap-3">
-        {/* Brand Logo */}
+        {/* Brand identity */}
         <Link
           href="/"
           onClick={closeMobileMenu}
@@ -42,7 +51,7 @@ function NavbarContent() {
           </span>
         </Link>
 
-        {/* Center Navigation Links: Desktop & Tablet Only */}
+        {/* Primary navigation routes */}
         <nav className="hidden md:flex items-center gap-2 sm:gap-3">
           <Link
             href="/"
@@ -67,9 +76,8 @@ function NavbarContent() {
           </Link>
         </nav>
 
-        {/* Right Badges & Mobile Hamburger */}
+        {/* Quick actions & mobile toggle */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Plan Pill Button */}
           <Link
             href="/my-plan?tab=plan"
             onClick={closeMobileMenu}
@@ -81,17 +89,17 @@ function NavbarContent() {
           >
             <span className={isPlanActive ? "text-white" : ""}>Plan</span>
             <span
+              suppressHydrationWarning
               className={`font-bold px-1.5 py-0.5 rounded-full text-[10px] sm:text-[11px] leading-none min-w-3.5 sm:min-w-4 text-center transition-all duration-300 ${
-                planIds.length > 0
+                isHydrated && planIds.length > 0
                   ? "bg-[#ccff00] text-black shadow-[0_0_10px_rgba(204,255,0,0.35)] group-hover:scale-105"
                   : "bg-[#1f232b] text-[#8b929e]"
               }`}
             >
-              {planIds.length}
+              {isHydrated ? planIds.length : 0}
             </span>
           </Link>
 
-          {/* Saved Pill Button */}
           <Link
             href="/my-plan?tab=saved"
             onClick={closeMobileMenu}
@@ -103,22 +111,22 @@ function NavbarContent() {
           >
             <span className={isSavedActive ? "text-white" : ""}>Saved</span>
             <span
+              suppressHydrationWarning
               className={`font-bold px-1.5 py-0.5 rounded-full text-[10px] sm:text-[11px] leading-none min-w-3.5 sm:min-w-4 text-center transition-all duration-300 ${
-                savedIds.length > 0
+                isHydrated && savedIds.length > 0
                   ? "bg-[#ccff00] text-black shadow-[0_0_10px_rgba(204,255,0,0.35)] group-hover:scale-105"
                   : "bg-[#1f232b] text-[#8b929e]"
               }`}
             >
-              {savedIds.length}
+              {isHydrated ? savedIds.length : 0}
             </span>
           </Link>
 
-          {/* Mobile Hamburger Toggle Button (Hidden on md and up) */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            aria-label="Toggle Navigation Menu"
-            className="md:hidden p-2 rounded-xl bg-[#14161b] border border-white/10 text-white hover:text-[#ccff00] transition-colors focus:outline-none"
+            aria-label="Toggle navigation menu"
+            className="md:hidden p-2 rounded-xl bg-[#14161b] border border-white/10 text-white hover:text-[#ccff00] transition-colors focus:outline-none cursor-pointer"
           >
             {mobileMenuOpen ? (
               <FiX className="w-5 h-5" />
@@ -129,7 +137,7 @@ function NavbarContent() {
         </div>
       </div>
 
-      {/* Mobile Drawer Dropdown */}
+      {/* Mobile drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-white/6 bg-[#0f1115]/98 backdrop-blur-xl px-4 py-4 space-y-2 animate-fadeIn">
           <Link
