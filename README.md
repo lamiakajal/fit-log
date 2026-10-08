@@ -8,7 +8,7 @@ FitLog is a modern, high-performance fitness tracking and workout management web
 
 ## 🔗 Live Demo & Deployment
 
-- **Live Application URL:** [YOUR_LIVE_LINK_HERE](https://)
+- **Live Application URL:** [https://fit-log-lamiakajal.vercel.app/](https://fit-log-lamiakajal.vercel.app/)
 - **GitHub Repository:** [https://github.com/lamiakajal/fit-log](https://github.com/lamiakajal/fit-log)
 
 ---
