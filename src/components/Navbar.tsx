@@ -1,13 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { FaDumbbell } from "react-icons/fa6";
 import { useWorkout } from "@/context/WorkoutContext";
 
-export default function Navbar() {
+function NavbarContent() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+
   const { planIds, savedIds } = useWorkout();
+
+  // Active state detection
+  const isPlanActive =
+    pathname === "/my-plan" && (tabParam === "plan" || !tabParam);
+  const isSavedActive = pathname === "/my-plan" && tabParam === "saved";
 
   return (
     <header className="w-full bg-[#0f1115] border-b border-white/6 sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
@@ -56,31 +65,63 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        {/* Right Badges: Plan & Saved Pill Buttons */}
+        {/* Right Badges: Plan & Saved Dynamic Pill Buttons */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Plan Pill Button */}
+          {/* Plan Button */}
           <Link
             href="/my-plan?tab=plan"
-            className="flex items-center gap-2 bg-[#14161b] hover:bg-[#1a1e26] border border-white/8 hover:border-[#ccff00]/40 px-3 sm:px-4 py-1.5 rounded-full transition-all text-xs font-heading font-semibold text-white cursor-pointer transform-gpu active:scale-95"
+            scroll={false}
+            className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-full transition-all duration-200 text-xs font-heading font-semibold cursor-pointer transform-gpu active:scale-95 ${
+              isPlanActive
+                ? "bg-[#181b22] border border-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+                : "bg-[#14161b] hover:bg-[#181b22] border border-white/8 hover:border-white/20 text-[#8b929e] hover:text-white"
+            }`}
           >
-            <span>Plan</span>
-            <span className="bg-[#ccff00] text-black font-bold px-1.5 py-0.2 rounded-full text-[11px] leading-tight min-w-4 text-center">
+            <span className={isPlanActive ? "text-white" : ""}>Plan</span>
+            {/* Count Badge: 0 hole greyish, > 0 hole neon green */}
+            <span
+              className={`font-bold px-1.5 py-0.5 rounded-full text-[11px] leading-none min-w-4 text-center transition-colors ${
+                planIds.length > 0
+                  ? "bg-[#ccff00] text-black shadow-[0_0_10px_rgba(204,255,0,0.3)]"
+                  : "bg-[#1f232b] text-[#8b929e]"
+              }`}
+            >
               {planIds.length}
             </span>
           </Link>
 
-          {/* Saved Pill Button */}
+          {/* Saved Button */}
           <Link
             href="/my-plan?tab=saved"
-            className="flex items-center gap-2 bg-[#14161b] hover:bg-[#1a1e26] border border-white/8 hover:border-white/20 px-3 sm:px-4 py-1.5 rounded-full transition-all text-xs font-heading font-semibold text-white cursor-pointer transform-gpu active:scale-95"
+            scroll={false}
+            className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-full transition-all duration-200 text-xs font-heading font-semibold cursor-pointer transform-gpu active:scale-95 ${
+              isSavedActive
+                ? "bg-[#181b22] border border-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+                : "bg-[#14161b] hover:bg-[#181b22] border border-white/8 hover:border-white/20 text-[#8b929e] hover:text-white"
+            }`}
           >
-            <span className="text-[#8b929e]">Saved</span>
-            <span className="bg-[#1f232b] text-[#8b929e] font-bold px-1.5 py-0.2 rounded-full text-[11px] leading-tight min-w-4 text-center">
+            <span className={isSavedActive ? "text-white" : ""}>Saved</span>
+            {/* Count Badge: 0 hole greyish, > 0 hole neon green */}
+            <span
+              className={`font-bold px-1.5 py-0.5 rounded-full text-[11px] leading-none min-w-4 text-center transition-colors ${
+                savedIds.length > 0
+                  ? "bg-[#ccff00] text-black shadow-[0_0_10px_rgba(204,255,0,0.3)]"
+                  : "bg-[#1f232b] text-[#8b929e]"
+              }`}
+            >
               {savedIds.length}
             </span>
           </Link>
         </div>
       </div>
     </header>
+  );
+}
+
+export default function Navbar() {
+  return (
+    <Suspense fallback={<div className="h-16 sm:h-20 bg-[#0f1115] w-full" />}>
+      <NavbarContent />
+    </Suspense>
   );
 }
