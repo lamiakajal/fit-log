@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Oswald, Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import InitialLoader from "@/components/InitialLoader";
 import { WorkoutProvider } from "@/context/WorkoutContext";
 import "./globals.css";
 
@@ -27,7 +28,13 @@ export const metadata: Metadata = {
   description:
     "Track every rep, hit your target progressive overload, and design your daily lifting split with zero friction.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
+  },
+  openGraph: {
+    title: "FitLog — Workout Library & Daily Lift Tracker",
+    description:
+      "Track every rep, hit your target progressive overload, and design your daily lifting split with zero friction.",
+    type: "website",
   },
 };
 
@@ -49,6 +56,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="bg-[#0f1115] text-[#f1f3f7] font-sans antialiased selection:bg-[#ccff00] selection:text-black min-h-screen flex flex-col overflow-x-hidden">
+        {/* Initial mount preloader */}
+        <InitialLoader />
+
+        {/* Global state and layout container */}
         <WorkoutProvider>
           <Navbar />
           <main className="flex-1 w-full">{children}</main>
