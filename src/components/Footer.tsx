@@ -175,7 +175,7 @@ export default function Footer() {
           }`}
         >
           <p className="text-[#8b929e] text-xs font-light text-center sm:text-left">
-            &copy; {new Date().getFullYear()} FitLog. All rights reserved.
+            &copy; 2026 FitLog. All rights reserved.
           </p>
 
           <button
