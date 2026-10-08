@@ -1,11 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { FiCheckCircle, FiTrash2, FiBookmark } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiTrash2,
+  FiBookmark,
+  FiAlertCircle,
+} from "react-icons/fi";
 
 export interface ToastInfo {
   message: string;
-  type: "add" | "remove" | "save" | "unsave";
+  type: "add" | "remove" | "save" | "unsave" | "limit";
 }
 
 interface WorkoutContextType {
@@ -81,6 +86,7 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
     };
   }, [toast]);
 
+  // Toggle Plan with Max 5 Constraint (Assignment Req 2 & 6)
   const togglePlan = (id: number, workoutName?: string) => {
     const label = workoutName ? `"${workoutName}"` : "Workout";
     setPlanIds((prev) => {
@@ -92,6 +98,15 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
         });
         return prev.filter((i) => i !== id);
       } else {
+        // Enforce Cap of 5 lifts
+        if (prev.length >= 5) {
+          setToast({
+            message: "Cap reached: You can only add up to 5 lifts for today!",
+            type: "limit",
+          });
+          return prev;
+        }
+
         setToast({
           message: `${label} added to today's plan`,
           type: "add",
@@ -122,6 +137,7 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isPositive = toast?.type === "add" || toast?.type === "save";
+  const isLimit = toast?.type === "limit";
 
   return (
     <WorkoutContext.Provider
@@ -136,7 +152,7 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
             transform: translateY(0px);
           }
           50% {
-            transform: translateY(-9px);
+            transform: translateY(-6px);
           }
           100% {
             transform: translateY(0px);
@@ -147,42 +163,52 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
         }
       `}</style>
 
-      {/* ================= TOAST POPUP ================= */}
+      {/* ================= TOAST POPUP (FULLY RESPONSIVE) ================= */}
       {toast && (
         <aside
           role="status"
           aria-live="polite"
-          className={`fixed bottom-6 right-6 left-auto z-50 pointer-events-none transition-all duration-300 ease-out ${
+          className={`fixed bottom-5 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 pointer-events-none transition-all duration-300 ease-out flex justify-center sm:justify-end ${
             isToastVisible
               ? "opacity-100 translate-y-0 scale-100"
               : "opacity-0 translate-y-6 scale-90"
           }`}
         >
-          {/* Floating Loop Class */}
-          <div className="toast-float-box">
+          <div className="toast-float-box w-full max-w-sm">
             <div
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-2xl transition-colors ${
-                isPositive
-                  ? "bg-[#14161b]/95 border-[#ccff00]/40 text-white shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(204,255,0,0.2)]"
-                  : "bg-[#14161b]/95 border-red-500/40 text-white shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(239,68,68,0.2)]"
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all ${
+                isLimit
+                  ? "bg-[#14161b]/95 border-amber-400/40 shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(251,191,36,0.2)]"
+                  : isPositive
+                    ? "bg-[#14161b]/95 border-[#ccff00]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(204,255,0,0.2)]"
+                    : "bg-[#14161b]/95 border-red-500/40 shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(239,68,68,0.2)]"
               }`}
             >
-              {/* Icon */}
+              {/* Icon Container */}
               <div
-                className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-lg ${
-                  isPositive
-                    ? "bg-[#ccff00]/15 text-[#ccff00]"
-                    : "bg-red-500/15 text-red-400"
+                className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-xl ${
+                  isLimit
+                    ? "bg-amber-400/15 text-amber-400"
+                    : isPositive
+                      ? "bg-[#ccff00]/15 text-[#ccff00]"
+                      : "bg-red-500/15 text-red-400"
                 }`}
               >
-                {toast.type === "add" && <FiCheckCircle className="w-4 h-4" />}
+                {toast.type === "add" && (
+                  <FiCheckCircle className="w-4 h-4 stroke-[2.5]" />
+                )}
                 {toast.type === "remove" && <FiTrash2 className="w-4 h-4" />}
-                {toast.type === "save" && <FiBookmark className="w-4 h-4" />}
+                {toast.type === "save" && (
+                  <FiBookmark className="w-4 h-4 fill-[#ccff00]" />
+                )}
                 {toast.type === "unsave" && <FiBookmark className="w-4 h-4" />}
+                {toast.type === "limit" && (
+                  <FiAlertCircle className="w-4 h-4 stroke-[2.5]" />
+                )}
               </div>
 
-              {/* Text */}
-              <p className="font-heading text-xs sm:text-sm font-semibold tracking-wide text-white leading-none pr-1">
+              {/* Message Text */}
+              <p className="font-heading text-xs sm:text-sm font-semibold tracking-wide text-white leading-tight pr-1">
                 {toast.message}
               </p>
             </div>

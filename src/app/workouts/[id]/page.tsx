@@ -8,24 +8,23 @@ import { FiCalendar, FiCheck, FiArrowLeft } from "react-icons/fi";
 import { IoBookmarkOutline, IoBookmark } from "react-icons/io5";
 import workoutsData from "@/data/workouts.json";
 import { useWorkout } from "@/context/WorkoutContext";
-import { Workout } from "@/components/WorkoutLibrary";
 
-/**
- * ==============================================================================
- * WORKOUT DETAIL VIEW COMPONENT
- * ==============================================================================
- * Responsive Grid Architecture:
- * - xs (<576px): Stacked single column, fluid image, responsive spec rows
- * - sm (576px - 767.98px): Spaced column stack with comfortable touch targets
- * - md (768px - 991.98px): 2-Column split layout
- * - lg & xl (992px+): Matches side-by-side design composition
- *
- * Integrated Animations & Features:
- * - IntersectionObserver: Dual-sided entrance (Image from left, specs from right)
- * - Continuous loops: Neon aura pulse on visual & badge breathing loop
- * - Context Integration: togglePlan & toggleSaved with workout name for toast
- * ==============================================================================
- */
+interface WorkoutItem {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  muscleGroups: string[];
+  equipment: string;
+  difficulty: string;
+  sets: number | string;
+  reps: number | string;
+  duration: number;
+  caloriesBurned: number;
+  rating: number;
+  instructions?: string[];
+}
+
 export default function WorkoutDetailPage({
   params,
 }: {
@@ -33,14 +32,15 @@ export default function WorkoutDetailPage({
 }) {
   const { id } = use(params);
   const workoutId = parseInt(id, 10);
-  const workout = (workoutsData as Workout[]).find((w) => w.id === workoutId);
+  const workout = (workoutsData as WorkoutItem[]).find(
+    (w) => w.id === workoutId,
+  );
 
   const { planIds, savedIds, togglePlan, toggleSaved } = useWorkout();
 
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
-  // Section scroll entry observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -86,33 +86,37 @@ export default function WorkoutDetailPage({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 lg:gap-14 items-start">
         {/* ==================================================================== */}
-        {/* 1. LEFT COLUMN: WORKOUT VISUAL FRAME WITH LOOP GLOW                  */}
+        {/* 1. LEFT COLUMN: WORKOUT VISUAL FRAME                                 */}
         {/* ==================================================================== */}
         <div
-          className={`relative w-full flex items-center justify-center transition-all duration-700 ease-out ${
+          className={`relative w-full flex flex-col items-center justify-center transition-all duration-700 ease-out ${
             isVisible
               ? "opacity-100 translate-x-0"
               : "opacity-0 -translate-x-10 sm:-translate-x-16"
           }`}
         >
           {/* Subtle Ambient Radial Pulse Glow */}
-          <div className="absolute w-4/5 h-4/5 bg-[#ccff00]/10 rounded-full blur-[70px] sm:blur-[90px] pointer-events-none animate-aura-loop" />
+          <div className="absolute w-4/5 h-4/5 bg-[#ccff00]/10 rounded-full blur-[70px] sm:blur-[90px] pointer-events-none" />
 
           {/* Main Visual Frame */}
-          <div className="relative w-full aspect-square bg-[#14161b] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/8 shadow-[0_16px_40px_rgba(0,0,0,0.8)] group">
+          <div className="relative w-full aspect-4/3 sm:aspect-square bg-[#14161b] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/8 shadow-[0_16px_40px_rgba(0,0,0,0.8)] group">
             <Image
               src={workout.image}
               alt={workout.name}
               fill
               priority
               unoptimized
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-103"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
+            {/* Difficulty Badge */}
+            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[11px] sm:text-xs font-heading font-bold uppercase tracking-wider text-[#ccff00]">
+              {workout.difficulty}
+            </div>
           </div>
         </div>
 
         {/* ==================================================================== */}
-        {/* 2. RIGHT COLUMN: DETAILS, SPECS TABLE & ACTION BUTTONS              */}
+        {/* 2. RIGHT COLUMN: DETAILS, SPECS TABLE & ACTION BUTTONS               */}
         {/* ==================================================================== */}
         <div
           className={`flex flex-col space-y-6 transition-all duration-700 ease-out delay-100 ${
@@ -131,12 +135,12 @@ export default function WorkoutDetailPage({
             </p>
           </div>
 
-          {/* Muscle Group Badges with Breathing Loop */}
+          {/* Muscle Group Badges */}
           <div className="flex flex-wrap gap-2">
             {workout.muscleGroups.map((group) => (
               <span
                 key={group}
-                className="bg-[#ccff00] text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider select-none shadow-sm animate-badge-loop"
+                className="bg-[#ccff00] text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider select-none shadow-sm"
               >
                 {group}
               </span>
@@ -199,42 +203,68 @@ export default function WorkoutDetailPage({
               <span className="font-heading uppercase tracking-wider text-[#8b929e] font-semibold">
                 RATING
               </span>
-              <span className="text-white font-medium">{workout.rating}</span>
+              <span className="text-white font-medium">
+                {workout.rating} / 5
+              </span>
             </div>
           </div>
 
           {/* Step-by-Step Instructions */}
-          {workout.instructions && workout.instructions.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <h2 className="font-heading text-lg font-bold uppercase tracking-wider text-white">
-                INSTRUCTIONS
-              </h2>
-              <ol className="space-y-2 text-xs sm:text-sm text-[#8b929e] leading-relaxed list-none">
-                {workout.instructions.map((step, idx) => (
+          <div className="space-y-3 pt-2">
+            <h2 className="font-heading text-lg font-bold uppercase tracking-wider text-white">
+              INSTRUCTIONS
+            </h2>
+            <ol className="space-y-2.5 text-xs sm:text-sm text-[#8b929e] leading-relaxed list-none">
+              {workout.instructions && workout.instructions.length > 0 ? (
+                workout.instructions.map((step, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
-                    <span className="text-white font-medium">{idx + 1}.</span>
-                    <span>{step}</span>
+                    <span className="text-[#ccff00] font-bold">{idx + 1}.</span>
+                    <span className="text-[#cbd5e1]">{step}</span>
                   </li>
-                ))}
-              </ol>
-            </div>
-          )}
+                ))
+              ) : (
+                <>
+                  <li className="flex items-start gap-2.5">
+                    <span className="text-[#ccff00] font-bold">1.</span>
+                    <span className="text-[#cbd5e1]">
+                      Set up your stance with feet shoulder-width apart and
+                      brace your core.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <span className="text-[#ccff00] font-bold">2.</span>
+                    <span className="text-[#cbd5e1]">
+                      Execute the movement with controlled breathing and full
+                      range of motion.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <span className="text-[#ccff00] font-bold">3.</span>
+                    <span className="text-[#cbd5e1]">
+                      Reset under control before initiating your next
+                      repetition.
+                    </span>
+                  </li>
+                </>
+              )}
+            </ol>
+          </div>
 
-          {/* Action CTAs (Responsive Buttons + Specific Workout Name for Toast) */}
+          {/* Action CTAs */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
             {/* Primary Action Button: Add/Remove Plan */}
             <button
               type="button"
               onClick={() => togglePlan(workout.id, workout.name)}
-              className={`w-full sm:w-auto flex items-center justify-center gap-2 font-heading uppercase text-xs sm:text-sm font-bold tracking-wider px-6 py-3.5 rounded-lg transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
+              className={`w-full sm:w-auto flex items-center justify-center gap-2 font-heading uppercase text-xs sm:text-sm font-bold tracking-wider px-6 py-3.5 rounded-xl transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
                 isInPlan
                   ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30"
-                  : "bg-[#ccff00] text-black hover:bg-white glow-lime"
+                  : "bg-[#ccff00] text-black hover:bg-white shadow-[0_0_20px_rgba(204,255,0,0.3)]"
               }`}
             >
               {isInPlan ? (
                 <>
-                  <FiCheck className="w-4 h-4 shrink-0" />
+                  <FiCheck className="w-4 h-4 shrink-0 stroke-[2.5]" />
                   Remove from plan
                 </>
               ) : (
@@ -249,7 +279,7 @@ export default function WorkoutDetailPage({
             <button
               type="button"
               onClick={() => toggleSaved(workout.id, workout.name)}
-              className={`w-full sm:w-auto flex items-center justify-center gap-2 font-heading uppercase text-xs sm:text-sm font-semibold tracking-wider px-6 py-3.5 rounded-lg border transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
+              className={`w-full sm:w-auto flex items-center justify-center gap-2 font-heading uppercase text-xs sm:text-sm font-semibold tracking-wider px-6 py-3.5 rounded-xl border transition-all duration-200 cursor-pointer transform-gpu hover:-translate-y-0.5 active:scale-95 ${
                 isSaved
                   ? "bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00] shadow-[0_0_12px_rgba(204,255,0,0.2)]"
                   : "bg-[#14161b] hover:bg-[#181b22] border-white/10 text-white hover:border-white/25"
