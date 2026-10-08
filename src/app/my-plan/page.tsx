@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   FiCheck,
   FiX,
@@ -17,14 +18,19 @@ import { Workout } from "@/components/WorkoutLibrary";
 
 type SortOption = "duration" | "calories" | "rating" | "name";
 
-export default function MyPlanPage() {
-  const { planIds, savedIds, togglePlan, toggleSaved } = useWorkout();
+function MyPlanContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryTab = searchParams.get("tab");
 
-  const [activeTab, setActiveTab] = useState<"plan" | "saved">("plan");
+  // Tab state derived directly from query parameter
+  const activeTab: "plan" | "saved" = queryTab === "saved" ? "saved" : "plan";
+
+  const { planIds, savedIds, togglePlan, toggleSaved } = useWorkout();
   const [sortBy, setSortBy] = useState<SortOption>("duration");
   const [completedIds, setCompletedIds] = useState<number[]>([]);
 
-  // Section Observer for smooth entry animations
+  // Section Observer for initial entry animation
   const pageRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -59,16 +65,18 @@ export default function MyPlanPage() {
     });
   }, [activeTab, planIds, savedIds, sortBy]);
 
-  // Dynamic Calculated Metrics (Based on Today's Plan)
+  // Dynamic Calculated Metrics
   const allWorkouts = workoutsData as Workout[];
-  const plannedWorkouts = allWorkouts.filter((w) => planIds.includes(w.id));
+  const targetWorkouts = allWorkouts.filter((w) =>
+    (activeTab === "plan" ? planIds : savedIds).includes(w.id),
+  );
 
-  const totalExercises = plannedWorkouts.length;
-  const totalMinutes = plannedWorkouts.reduce(
+  const totalExercises = targetWorkouts.length;
+  const totalMinutes = targetWorkouts.reduce(
     (acc, curr) => acc + curr.duration,
     0,
   );
-  const totalCalories = plannedWorkouts.reduce(
+  const totalCalories = targetWorkouts.reduce(
     (acc, curr) => acc + curr.caloriesBurned,
     0,
   );
@@ -79,12 +87,16 @@ export default function MyPlanPage() {
     );
   };
 
+  const handleTabSwitch = (tab: "plan" | "saved") => {
+    router.replace(`/my-plan?tab=${tab}`, { scroll: false });
+  };
+
   return (
     <main
       ref={pageRef}
       className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-8 sm:py-12 select-none min-h-[80vh] flex flex-col overflow-hidden"
     >
-      {/* 1. Header Title & Subtitle with Fade-in Animation */}
+      {/* 1. Header Title & Subtitle */}
       <header
         className={`space-y-1.5 mb-8 transition-all duration-500 ease-out ${
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
@@ -98,13 +110,12 @@ export default function MyPlanPage() {
         </p>
       </header>
 
-      {/* 2. Top Summary Stat Metric Banner with Slide-up Animation */}
+      {/* 2. Top Summary Stat Metric Banner */}
       <section
         className={`w-full bg-[#14161b] border border-white/6 rounded-2xl p-6 sm:p-8 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-white/6 shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all duration-700 ease-out delay-100 ${
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-        {/* Exercises */}
         <div className="flex flex-col space-y-1">
           <span className="text-[#8b929e] text-xs font-semibold uppercase tracking-wider font-heading">
             Exercises
@@ -114,7 +125,6 @@ export default function MyPlanPage() {
           </span>
         </div>
 
-        {/* Minutes */}
         <div className="flex flex-col space-y-1 sm:pl-8 pt-4 sm:pt-0">
           <span className="text-[#8b929e] text-xs font-semibold uppercase tracking-wider font-heading">
             Minutes
@@ -124,7 +134,6 @@ export default function MyPlanPage() {
           </span>
         </div>
 
-        {/* Calories */}
         <div className="flex flex-col space-y-1 sm:pl-8 pt-4 sm:pt-0">
           <span className="text-[#8b929e] text-xs font-semibold uppercase tracking-wider font-heading">
             Calories
@@ -145,7 +154,7 @@ export default function MyPlanPage() {
         <div className="inline-flex items-center bg-[#14161b] p-1 rounded-xl border border-white/8 self-start">
           <button
             type="button"
-            onClick={() => setActiveTab("plan")}
+            onClick={() => handleTabSwitch("plan")}
             className={`px-4 sm:px-5 py-2 rounded-lg font-heading text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
               activeTab === "plan"
                 ? "bg-[#1f232b] text-white shadow-sm"
@@ -156,7 +165,7 @@ export default function MyPlanPage() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("saved")}
+            onClick={() => handleTabSwitch("saved")}
             className={`px-4 sm:px-5 py-2 rounded-lg font-heading text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
               activeTab === "saved"
                 ? "bg-[#1f232b] text-white shadow-sm"
@@ -167,7 +176,7 @@ export default function MyPlanPage() {
           </button>
         </div>
 
-        {/* Sort By Dropdown (Type-Safe Fix) */}
+        {/* Sort By Dropdown */}
         <div className="flex items-center gap-2 self-end sm:self-auto text-xs text-[#8b929e] font-heading font-medium">
           <span>Sort By</span>
           <div className="relative">
@@ -193,7 +202,7 @@ export default function MyPlanPage() {
         }`}
       >
         {workoutsList.length === 0 ? (
-          /* ================= STATE 1: EMPTY STATE CONTAINER ================= */
+          /* Empty State */
           <div className="w-full border border-dashed border-white/10 rounded-2xl py-16 sm:py-24 px-4 flex flex-col items-center justify-center text-center space-y-4">
             <h3 className="font-heading text-lg sm:text-xl font-bold uppercase tracking-wider text-white">
               NOTHING HERE YET
@@ -209,7 +218,7 @@ export default function MyPlanPage() {
             </Link>
           </div>
         ) : (
-          /* ================= STATES 2 & 3: HORIZONTAL WORKOUT CARDS ================= */
+          /* Workout Cards */
           <div className="space-y-4">
             {workoutsList.map((item, index) => {
               const isCompleted = completedIds.includes(item.id);
@@ -224,7 +233,6 @@ export default function MyPlanPage() {
                 >
                   {/* Left: Thumbnail & Info */}
                   <div className="flex items-center gap-4 sm:gap-5 w-full md:w-auto">
-                    {/* Thumbnail Image */}
                     <Link
                       href={`/workouts/${item.id}`}
                       className="relative w-24 sm:w-28 h-16 sm:h-18 rounded-xl overflow-hidden bg-[#181b22] shrink-0 border border-white/8 cursor-pointer"
@@ -238,7 +246,6 @@ export default function MyPlanPage() {
                       />
                     </Link>
 
-                    {/* Metadata */}
                     <div className="flex flex-col space-y-1 min-w-0">
                       <Link
                         href={`/workouts/${item.id}`}
@@ -251,7 +258,6 @@ export default function MyPlanPage() {
                       <span className="text-[#8b929e] text-xs font-light">
                         {item.equipment}
                       </span>
-                      {/* Stat chips */}
                       <div className="flex items-center gap-3 text-xs text-[#8b929e] pt-0.5">
                         <span className="flex items-center gap-1 text-[#ccff00]">
                           <FiClock className="w-3.5 h-3.5 shrink-0" />
@@ -273,9 +279,8 @@ export default function MyPlanPage() {
                     </div>
                   </div>
 
-                  {/* Right: Action Buttons */}
+                  {/* Right: Actions */}
                   <div className="flex items-center gap-2.5 sm:gap-3 w-full md:w-auto justify-end pt-2 md:pt-0 border-t md:border-t-0 border-white/6">
-                    {/* View Details Button */}
                     <Link
                       href={`/workouts/${item.id}`}
                       className="px-4 py-2 rounded-lg border border-white/10 hover:border-white/25 bg-[#181b22] text-xs font-heading font-semibold text-white tracking-wider uppercase transition-all cursor-pointer hover:bg-[#20242d] transform-gpu active:scale-95"
@@ -299,7 +304,7 @@ export default function MyPlanPage() {
                       </button>
                     )}
 
-                    {/* Remove ✕ Button */}
+                    {/* Remove Button */}
                     <button
                       type="button"
                       aria-label="Remove item"
@@ -322,5 +327,19 @@ export default function MyPlanPage() {
         )}
       </section>
     </main>
+  );
+}
+
+export default function MyPlanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[80vh] flex items-center justify-center text-[#8b929e]">
+          Loading...
+        </div>
+      }
+    >
+      <MyPlanContent />
+    </Suspense>
   );
 }
