@@ -2,7 +2,6 @@
 
 import Banner from "@/components/Banner";
 import WorkoutLibrary from "@/components/WorkoutLibrary";
-import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -12,9 +11,6 @@ export default function Home() {
 
       {/* 2. Workout Library Grid */}
       <WorkoutLibrary />
-
-      {/* 3. Footer Section */}
-      <Footer />
     </main>
   );
 }
